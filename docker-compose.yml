@@ -1,11 +1,11 @@
 version: '3.8'
 services:
   postgres:
-    image: postgres:12
-    restart: always
+    image: 'postgres:12'
+    restart: 'always'
     environment:
-      - POSTGRES_USER=test-user
-      - POSTGRES_PASSWORD=test-password
+      - POSTGRES_USER="${DB_USER}"
+      - POSTGRES_PASSWORD="${DB_PW}"
     volumes:
       - postgres:/var/lib/postgresql/data
     ports:
