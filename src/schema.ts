@@ -13,17 +13,18 @@ export const typeDefs = gql`
   type Bug {
     id: ID!
     Priority: Priority!
-    assignedTo: ID!
-    dueBy: DATETIME!
+    assignedTo: ID
+    dueBy: DATETIME
     createdAt: DATETIME!
     status: Status!
-    solvedOn: DATETIME!
-    description: String
+    solvedOn: DATETIME
+    description: String!
     reportedBy: ID!
     changelog: [change!]
   }
 
   type Change {
+    id: Int!
     description: String!
     message: String!
     timestamp: DATETIME!

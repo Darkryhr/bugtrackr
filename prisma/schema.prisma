@@ -9,3 +9,52 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id            String      @id @default(uuid())
+  name          String
+  username      String
+  role          Role        @default(DEV)
+  bugAssigned   Bug[]
+}
+
+model Bug {
+  id            String      @id @default(uuid())
+  priority      Priority    @default(STANDARD)
+  assignee      User?       @relation(fields: [assignedTo],references: [id])
+  assignedTo    String?
+  dueBy         DateTime?
+  createdAt     DateTime    @default(now())
+  status        Status      @default(PENDING)
+  solvedOn      DateTime?
+  description   String
+  reportedBy    String
+  changelog     Change[]
+}
+
+model Change {
+  id            Int         @id @default(autoincrement())
+  description   String
+  message       String
+  timestamp     DateTime    @default(now())
+  releaseVer    String?
+  bug           Bug         @relation(fields: [bugId], references: [id])
+  bugId         String
+}
+
+enum Role {
+  DEV
+  ADMIN
+}
+
+enum Priority {
+  LOW
+  STANDARD
+  HIGH
+}
+
+enum Status {
+  PENDING
+  ACTIVE
+  CLOSED
+}
