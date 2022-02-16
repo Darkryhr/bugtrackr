@@ -1,4 +1,4 @@
-import { gql } from "apollo-server";
+import { gql } from 'apollo-server';
 
 export const typeDefs = gql`
   type User {
@@ -32,7 +32,8 @@ export const typeDefs = gql`
   }
 
   type Query {
-    allBugs: String
+    allBugs: [Bug!]
+    bug(id: ID!): Bug!
   }
 
   type Mutation {
