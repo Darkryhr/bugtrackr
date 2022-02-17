@@ -11,9 +11,9 @@ export interface UserCreateInput {
 }
 
 enum Priority {
-  LOW,
-  STANDARD,
-  HIGH,
+  LOW = 'LOW',
+  STANDARD = 'STANDARD',
+  HIGH = 'HIGH',
 }
 
 enum Role {

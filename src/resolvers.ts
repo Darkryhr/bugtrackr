@@ -31,13 +31,17 @@ export const resolvers = {
     },
   },
   Mutation: {
-    createUser: (_: any, args: UserCreateInput) => {
-      return prisma.user.create({
+    createUser: async (_: any, args: UserCreateInput) => {
+      const res = await prisma.user.create({
         data: {
           name: args.name,
           username: args.username,
         },
+        select: {
+          id: true,
+        },
       });
+      return res.id;
     },
     reportBug: async (_: any, args: { data: BugReport }) => {
       const res = await prisma.bug.create({

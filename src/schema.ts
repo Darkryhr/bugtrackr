@@ -14,7 +14,7 @@ export const typeDefs = gql`
 
   type Bug {
     id: ID!
-    Priority: Priority!
+    priority: Priority!
     assignedTo: ID
     dueBy: Date
     createdAt: Date!
@@ -51,7 +51,6 @@ export const typeDefs = gql`
 
   input BugReport {
     reportedBy: ID!
-    priority: Priority
     description: String!
   }
 
