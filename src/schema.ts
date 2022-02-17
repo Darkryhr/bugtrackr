@@ -1,6 +1,8 @@
 import { gql } from 'apollo-server';
 
 export const typeDefs = gql`
+  scalar Date
+
   type User {
     id: ID!
     name: String!
@@ -14,20 +16,20 @@ export const typeDefs = gql`
     id: ID!
     Priority: Priority!
     assignedTo: ID
-    dueBy: DATETIME
-    createdAt: DATETIME!
+    dueBy: Date
+    createdAt: Date!
     status: Status!
-    solvedOn: DATETIME
+    solvedOn: Date
     description: String!
     reportedBy: ID!
-    changelog: [change!]
+    changelog: [Change!]
   }
 
   type Change {
     id: Int!
     description: String!
     message: String!
-    timestamp: DATETIME!
+    timestamp: Date!
     releaseVersion: String!
   }
 
@@ -38,12 +40,13 @@ export const typeDefs = gql`
 
   type Mutation {
     createUser(data: UserCreateInput): ID!
-    updateBug(id: ID!): ID!
     reportBug(data: BugReport): ID!
   }
 
   input UserCreateInput {
     name: String!
+    username: String!
+    role: Role!
   }
 
   input BugReport {

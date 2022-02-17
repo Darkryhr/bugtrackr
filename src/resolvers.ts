@@ -1,40 +1,56 @@
+import { GraphQLScalarType, Kind } from 'graphql';
 import { prisma } from './db';
-
-interface BugReport {
-  reportedBy: string;
-  priority: Priority;
-  description: string;
-}
-
-interface UserCreateInput {
-  name: string;
-}
-
-enum Priority {
-  LOW,
-  STANDARD,
-  HIGH,
-}
-
-enum Role {
-  ADMIN,
-  DEV,
-}
-
-enum Status {
-  PENDING,
-  ACTIVE,
-  CLOSED,
-}
+import { BugReport, UserCreateInput } from './models';
 
 export const resolvers = {
+  Date: new GraphQLScalarType({
+    name: 'Date',
+    description: 'Date custom scalar',
+    serialize(value: any): number {
+      return value.getTime();
+    },
+    parseValue(value: any): Date {
+      return new Date(value);
+    },
+    parseLiteral(ast) {
+      if (ast.kind === Kind.INT) {
+        return new Date(parseInt(ast.value, 10));
+      }
+      return null;
+    },
+  }),
+
   Query: {
-    allBugs: () => {},
-    bug: (_: any, args: { id: string }) => {},
+    allBugs: () => {
+      return prisma.bug.findMany();
+    },
+    bug: (_: any, args: { id: string }) => {
+      return prisma.bug.findFirst({
+        where: { id: args.id },
+      });
+    },
   },
   Mutation: {
-    createUser: (_: any, args: UserCreateInput) => {},
-    updateBug: (_: any, args: { id: string }) => {},
-    reportBug: (_: any, data: BugReport) => {},
+    createUser: (_: any, args: UserCreateInput) => {
+      return prisma.user.create({
+        data: {
+          name: args.name,
+          username: args.username,
+        },
+      });
+    },
+    reportBug: async (_: any, args: { data: BugReport }) => {
+      const res = await prisma.bug.create({
+        data: {
+          description: args.data.description,
+          reportedBy: args.data.reportedBy,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      return res.id;
+    },
   },
 };
