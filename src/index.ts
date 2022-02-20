@@ -1,4 +1,6 @@
 import { ApolloServer } from 'apollo-server-express';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { applyMiddleware } from 'graphql-middleware';
 import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
 import express from 'express';
 import { Request } from 'express';
@@ -7,6 +9,7 @@ import http from 'http';
 
 import { resolvers } from './resolvers';
 import { typeDefs } from './schema';
+import permissions from './lib/permissions';
 
 const port = process.env.PORT || 8080;
 
@@ -23,8 +26,10 @@ async function startApolloServer(typeDefs: any, resolvers: any) {
   );
 
   const server = new ApolloServer({
-    resolvers,
-    typeDefs,
+    schema: applyMiddleware(
+      makeExecutableSchema({ typeDefs, resolvers }),
+      permissions
+    ),
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
     context: ({ req }: { req: Request }) => {
       const user = req.user || null;

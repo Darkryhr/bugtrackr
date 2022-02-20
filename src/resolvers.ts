@@ -24,7 +24,6 @@ export const resolvers = {
 
   Query: {
     allBugs: (_: any, _args: any, context: any) => {
-      console.log(context);
       return prisma.bug.findMany();
     },
     bug: (_: any, args: { id: string }) => {
@@ -51,14 +50,13 @@ export const resolvers = {
         },
       });
 
-      return jwt.sign({ userId: user.id }, 'TEMP_SECRET', {
+      return jwt.sign({ id: user.id, role: user.role }, 'TEMP_SECRET', {
         algorithm: 'HS256',
         expiresIn: '1d',
       });
     },
     login: async (_: any, args: { data: UserLoginInput }) => {
       const { data } = args;
-
       const user = await prisma.user.findUnique({
         where: { email: data.email },
       });
@@ -66,7 +64,7 @@ export const resolvers = {
       const valid = await bcrypt.compare(data.password, user.password);
       if (!valid) throw new Error('Invalid password');
 
-      return jwt.sign({ userId: user.id }, 'TEMP_SECRET', {
+      return jwt.sign({ id: user.id, role: user.role }, 'TEMP_SECRET', {
         algorithm: 'HS256',
         expiresIn: '1d',
       });
