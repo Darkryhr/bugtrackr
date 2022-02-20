@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server';
+import { gql } from 'apollo-server-express';
 
 export const typeDefs = gql`
   scalar Date
@@ -39,8 +39,8 @@ export const typeDefs = gql`
   }
 
   type Mutation {
-    signUp(data: UserCreateInput): ID!
-    login(data: UserLoginInput): ID!
+    signUp(data: UserCreateInput!): String
+    login(data: UserLoginInput!): String
     reportBug(data: BugReport): ID!
   }
 

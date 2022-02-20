@@ -2,6 +2,7 @@ import { GraphQLScalarType, Kind } from 'graphql';
 import { prisma } from './db';
 import { BugReport, UserCreateInput, UserLoginInput } from './models';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 export const resolvers = {
   Date: new GraphQLScalarType({
@@ -33,25 +34,41 @@ export const resolvers = {
     },
   },
   Mutation: {
-    signUp: async (_: any, args: UserCreateInput) => {
-      const hashedPassword = await bcrypt.hash(args.password, 12);
-      const res = await prisma.user.create({
+    signUp: async (
+      _: any,
+      args: {
+        data: UserCreateInput;
+      }
+    ) => {
+      const { data } = args;
+      const hashedPassword = await bcrypt.hash(data.password, 12);
+      const user = await prisma.user.create({
         data: {
-          name: args.name,
-          username: args.username,
-          email: args.email,
+          name: data.name,
+          username: data.username,
+          email: data.email,
           password: hashedPassword,
-        },
-        select: {
-          id: true,
         },
       });
 
-      return res.id;
+      return jwt.sign({ userId: user.id }, 'TEMP_SECRET', {
+        algorithm: 'HS256',
+        expiresIn: '1d',
+      });
     },
-    login: async (_: any, args: UserLoginInput) => {
+    login: async (_: any, args: { data: UserLoginInput }) => {
+      const { data } = args;
+
       const user = await prisma.user.findUnique({
-        where: { email: args.email },
+        where: { email: data.email },
+      });
+      if (!user) throw new Error('No user found');
+      const valid = await bcrypt.compare(data.password, user.password);
+      if (!valid) throw new Error('Invalid password');
+
+      return jwt.sign({ userId: user.id }, 'TEMP_SECRET', {
+        algorithm: 'HS256',
+        expiresIn: '1d',
       });
     },
     reportBug: async (_: any, args: { data: BugReport }) => {
