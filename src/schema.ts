@@ -39,14 +39,22 @@ export const typeDefs = gql`
   }
 
   type Mutation {
-    createUser(data: UserCreateInput): ID!
+    signUp(data: UserCreateInput): ID!
+    login(data: UserLoginInput): ID!
     reportBug(data: BugReport): ID!
   }
 
   input UserCreateInput {
     name: String!
+    email: String!
     username: String!
-    role: Role!
+    password: String!
+    role: Role
+  }
+
+  input UserLoginInput {
+    email: String!
+    password: String!
   }
 
   input BugReport {

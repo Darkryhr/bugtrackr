@@ -6,8 +6,15 @@ export interface BugReport {
 
 export interface UserCreateInput {
   name: string;
+  email: string;
   username: string;
-  role: Role;
+  password: string;
+  role?: Role;
+}
+
+export interface UserLoginInput {
+  email: string;
+  password: string;
 }
 
 enum Priority {

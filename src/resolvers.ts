@@ -1,6 +1,7 @@
 import { GraphQLScalarType, Kind } from 'graphql';
 import { prisma } from './db';
-import { BugReport, UserCreateInput } from './models';
+import { BugReport, UserCreateInput, UserLoginInput } from './models';
+import bcrypt from 'bcryptjs';
 
 export const resolvers = {
   Date: new GraphQLScalarType({
@@ -21,7 +22,8 @@ export const resolvers = {
   }),
 
   Query: {
-    allBugs: () => {
+    allBugs: (_: any, _args: any, context: any) => {
+      console.log(context);
       return prisma.bug.findMany();
     },
     bug: (_: any, args: { id: string }) => {
@@ -31,17 +33,26 @@ export const resolvers = {
     },
   },
   Mutation: {
-    createUser: async (_: any, args: UserCreateInput) => {
+    signUp: async (_: any, args: UserCreateInput) => {
+      const hashedPassword = await bcrypt.hash(args.password, 12);
       const res = await prisma.user.create({
         data: {
           name: args.name,
           username: args.username,
+          email: args.email,
+          password: hashedPassword,
         },
         select: {
           id: true,
         },
       });
+
       return res.id;
+    },
+    login: async (_: any, args: UserLoginInput) => {
+      const user = await prisma.user.findUnique({
+        where: { email: args.email },
+      });
     },
     reportBug: async (_: any, args: { data: BugReport }) => {
       const res = await prisma.bug.create({
