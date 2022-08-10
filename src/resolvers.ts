@@ -1,9 +1,14 @@
 import { GraphQLScalarType, Kind } from 'graphql';
 import { prisma } from './db';
+import { Prisma } from '@prisma/client';
 import { BugReport, UserCreateInput, UserLoginInput } from './models';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { UserInputError } from 'apollo-server-express';
 
+interface ErrorMeta {
+  target: string[];
+}
 export const resolvers = {
   Date: new GraphQLScalarType({
     name: 'Date',
@@ -40,34 +45,48 @@ export const resolvers = {
       }
     ) => {
       const { data } = args;
-      const hashedPassword = await bcrypt.hash(data.password, 12);
-      const user = await prisma.user.create({
-        data: {
-          name: data.name,
-          username: data.username,
-          email: data.email,
-          password: hashedPassword,
-        },
-      });
+      try {
+        const hashedPassword = await bcrypt.hash(data.password, 12);
+        const user = await prisma.user.create({
+          data: {
+            name: data.name,
+            username: data.username,
+            email: data.email,
+            password: hashedPassword,
+          },
+        });
 
-      return jwt.sign({ id: user.id, role: user.role }, 'TEMP_SECRET', {
-        algorithm: 'HS256',
-        expiresIn: '1d',
-      });
+        return jwt.sign({ id: user.id, role: user.role }, 'TEMP_SECRET', {
+          algorithm: 'HS256',
+          expiresIn: '1d',
+        });
+      } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          if (error.code === 'P2002') {
+            console.log(error);
+            //TODO: get target violater from meta(typed as object, cant access fields)
+            throw new UserInputError(`There is a unique constraint violation`);
+          }
+        }
+      }
     },
     login: async (_: any, args: { data: UserLoginInput }) => {
       const { data } = args;
-      const user = await prisma.user.findUnique({
-        where: { email: data.email },
-      });
-      if (!user) throw new Error('No user found');
-      const valid = await bcrypt.compare(data.password, user.password);
-      if (!valid) throw new Error('Invalid password');
+      try {
+        const user = await prisma.user.findUnique({
+          where: { email: data.email },
+        });
+        if (!user) throw new UserInputError('No user found');
+        const valid = await bcrypt.compare(data.password, user.password);
+        if (!valid) throw new UserInputError('Invalid password');
 
-      return jwt.sign({ id: user.id, role: user.role }, 'TEMP_SECRET', {
-        algorithm: 'HS256',
-        expiresIn: '1d',
-      });
+        return jwt.sign({ id: user.id, role: user.role }, 'TEMP_SECRET', {
+          algorithm: 'HS256',
+          expiresIn: '1d',
+        });
+      } catch (error) {
+        console.log(error);
+      }
     },
     reportBug: async (_: any, args: { data: BugReport }) => {
       const res = await prisma.bug.create({

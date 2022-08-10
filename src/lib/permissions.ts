@@ -1,4 +1,4 @@
-import { rule, shield } from 'graphql-shield';
+import { allow, rule, shield } from 'graphql-shield';
 
 const isAuthenticated = rule({ cache: 'contextual' })(
   async (parent, args, ctx, info) => {
@@ -12,12 +12,19 @@ const isAdmin = rule({ cache: 'contextual' })(
   }
 );
 
-export default shield({
-  Query: {
-    allBugs: isAuthenticated,
-    bug: isAuthenticated,
+export default shield(
+  {
+    Query: {
+      allBugs: allow,
+      bug: isAuthenticated,
+    },
+    Mutation: {
+      signUp: allow,
+      login: allow,
+      reportBug: isAuthenticated,
+    },
   },
-  Mutation: {
-    reportBug: isAuthenticated,
-  },
-});
+  {
+    debug: true,
+  }
+);
